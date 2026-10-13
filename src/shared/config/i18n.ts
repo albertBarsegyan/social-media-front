@@ -16,3 +16,10 @@ export const localeLabels: Record<Locale, string> = {
 export function isLocale(value: unknown): value is Locale {
   return typeof value === "string" && (locales as readonly string[]).includes(value)
 }
+
+/** English names of content languages, as shown in filters and badges. */
+export const localeNames: Record<Locale, string> = {
+  hy: "Armenian",
+  ru: "Russian",
+  en: "English",
+}
