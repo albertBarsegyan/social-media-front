@@ -151,7 +151,4 @@
   body {
     @apply bg-background text-foreground;
   }
-  a {
-    @apply underline underline-offset-3 hover:text-muted-foreground;
-  }
 }
