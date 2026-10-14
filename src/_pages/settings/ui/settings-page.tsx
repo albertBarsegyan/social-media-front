@@ -2,14 +2,11 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { Suspense } from "react"
 
-import { BrandProfileForm } from "@/features/edit-brand-profile"
-import { IntegrationList } from "@/features/connect-integration"
 import { settingsSections, type SettingsSection } from "@/shared/config"
 import { Skeleton } from "@/shared/ui/skeleton"
 
 import { BillingSection } from "./billing-section"
-import { KeywordsSection, TeamSection, UsageSection } from "./client-sections"
-import { SectionCard } from "./section-card"
+import { BrandSection, ChannelsSection, KeywordsSection, TeamSection, UsageSection } from "./client-sections"
 import { SettingsNav } from "./settings-nav"
 
 export const metadata: Metadata = { title: "Settings" }
@@ -26,22 +23,11 @@ async function Section({ params }: { params: Promise<{ section: string }> }) {
 
   switch (section) {
     case "brand":
-      return (
-        <SectionCard title="Brand profile" description="The AI reads this before every reply and post.">
-          <BrandProfileForm showSave />
-        </SectionCard>
-      )
+      return <BrandSection />
     case "keywords":
       return <KeywordsSection />
     case "channels":
-      return (
-        <SectionCard
-          title="Channels"
-          description="We publish only through approved wrapper APIs — never mass DMs or gated platform APIs."
-        >
-          <IntegrationList />
-        </SectionCard>
-      )
+      return <ChannelsSection />
     case "team":
       return <TeamSection />
     case "usage":

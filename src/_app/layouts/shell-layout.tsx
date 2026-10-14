@@ -1,7 +1,7 @@
 import { cookies } from "next/headers"
 import { Suspense, type ReactNode } from "react"
 
-import { CurrentWorkspaceProvider, defaultWorkspaceId, workspaceCookie } from "@/entities/workspace"
+import { CurrentWorkspaceProvider, workspaceCookie } from "@/entities/workspace"
 import { RaiseCapDialog } from "@/features/adjust-ai-cap"
 import { WorkspaceSwitcherDialog } from "@/features/switch-workspace"
 import { defaultLocale, isLocale, localeCookie } from "@/shared/config"
@@ -14,7 +14,7 @@ import { AppHeader, AppSidebar, MobileNav, StatusBanners } from "@/widgets/app-s
 async function Session({ children }: { children: ReactNode }) {
   const store = await cookies()
   const locale = store.get(localeCookie)?.value
-  const workspaceId = store.get(workspaceCookie)?.value ?? defaultWorkspaceId
+  const workspaceId = store.get(workspaceCookie)?.value
 
   return (
     <LocaleProvider initialLocale={isLocale(locale) ? locale : defaultLocale}>

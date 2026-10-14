@@ -4,7 +4,6 @@ import { ArrowUpDownIcon, MenuIcon } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 
-import { useViewer } from "@/entities/viewer"
 import { setWorkspaceSwitcherOpen } from "@/features/switch-workspace"
 import { cn } from "@/shared/lib/utils"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/shared/ui/sheet"
@@ -16,11 +15,10 @@ const tabClass = "relative flex min-h-12 flex-col items-center justify-center ga
 
 /** Bottom tab bar with a "More" sheet, shown below the md breakpoint. */
 export function MobileNav() {
-  const { pathname, t, counts } = useShellState()
-  const viewer = useViewer()
+  const { pathname, t, counts, showAgency, canSwitch } = useShellState()
   const [moreOpen, setMoreOpen] = useState(false)
   const moreActive = mobileMore.some((item) => isActive(pathname, item))
-  const moreItems = viewer.role === "operator" ? mobileMore : mobileMore.filter((item) => item !== nav.clients)
+  const moreItems = showAgency ? mobileMore : mobileMore.filter((item) => item !== nav.clients)
 
   return (
     <>
@@ -63,7 +61,7 @@ export function MobileNav() {
             <SheetTitle>{t.more}</SheetTitle>
           </SheetHeader>
           <div className="grid gap-1 px-2">
-            {viewer.role === "operator" ? (
+            {canSwitch ? (
               <button
                 type="button"
                 onClick={() => {

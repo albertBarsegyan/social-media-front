@@ -1,9 +1,9 @@
 import type { ComponentProps } from "react"
 
 import { ChannelMark, channelInfo } from "@/entities/channel/@x/post"
+import type { Post } from "@/shared/api"
+import { formatTime } from "@/shared/lib/format"
 import { cn } from "@/shared/lib/utils"
-
-import type { ScheduledPost } from "../model/types"
 
 export type PostCardState = "published" | "scheduled" | "pending" | "paused"
 
@@ -22,7 +22,7 @@ const stateClasses: Record<PostCardState, string> = {
 }
 
 interface PostCardProps extends ComponentProps<"div"> {
-  post: ScheduledPost
+  post: Post
   state: PostCardState
 }
 
@@ -31,7 +31,7 @@ export function PostCard({ post, state, className, ...props }: PostCardProps) {
     <div className={cn("rounded-lg border p-2 text-xs", stateClasses[state], className)} {...props}>
       <div className="flex items-center gap-1.5 text-muted-foreground">
         <ChannelMark short={channelInfo[post.channel].short} />
-        <span className="font-mono">{post.time}</span>
+        <span className="font-mono">{formatTime(post.scheduledAt)}</span>
         <span className="ml-auto font-mono uppercase">{post.lang}</span>
       </div>
       <p className="mt-1.5 line-clamp-3 text-foreground">{post.text}</p>

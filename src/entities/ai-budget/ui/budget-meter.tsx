@@ -1,15 +1,14 @@
+import type { AiBudget } from "@/shared/api"
 import { cn } from "@/shared/lib/utils"
 import { Progress } from "@/shared/ui/progress"
 
-import type { BudgetSnapshot } from "../model/store"
-
-const indicatorClasses: Record<BudgetSnapshot["level"], string> = {
+const indicatorClasses: Record<AiBudget["level"], string> = {
   normal: "",
   high: "*:data-[slot=progress-indicator]:bg-warning",
   reached: "*:data-[slot=progress-indicator]:bg-destructive",
 }
 
-export function BudgetMeter({ budget, className }: { budget: BudgetSnapshot; className?: string }) {
+export function BudgetMeter({ budget, className }: { budget: AiBudget; className?: string }) {
   return (
     <Progress
       value={budget.percent}

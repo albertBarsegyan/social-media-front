@@ -3,33 +3,42 @@
 import { ChevronLeftIcon, ExternalLinkIcon, InboxIcon } from "lucide-react"
 import Link from "next/link"
 
-import { IntentBreakdown, LeadSourcePost, useLead, useLeads } from "@/entities/lead"
+import { IntentBreakdown, SourcePost, useBuyingIntent, useBuyingIntents } from "@/entities/buying-intent"
+import { useCatalog } from "@/entities/catalog"
+import { useCurrentWorkspace } from "@/entities/workspace"
 import { setRaiseCapOpen } from "@/features/adjust-ai-cap"
-import { filterLeads, useLeadFilters } from "@/features/filter-leads"
+import { useLeadFilters } from "@/features/filter-leads"
 import { ReplyReview } from "@/features/review-reply"
 import { routes } from "@/shared/config"
-import { toast } from "@/shared/lib/toast"
 import { Button } from "@/shared/ui/button"
 import { EmptyState } from "@/shared/ui/empty-state"
+import { ErrorState } from "@/shared/ui/error-state"
+import { Skeleton } from "@/shared/ui/skeleton"
 
-export function LeadReview({ leadId }: { leadId: string }) {
-  const lead = useLead(leadId)
+export function LeadReview({ intentId }: { intentId: string }) {
+  const { workspaceId, role } = useCurrentWorkspace()
+  const query = useBuyingIntent(workspaceId, intentId)
+  const draftThreshold = useCatalog().data?.draftThreshold
 
-  if (!lead) {
-    return (
+  if (query.isPending) return <Skeleton className="h-96 rounded-xl" />
+  if (query.isError) {
+    return query.error.code === "NOT_FOUND" ? (
       <EmptyState
         icon={<InboxIcon />}
         title="Lead not found"
-        description="It may have been removed from the inbox."
+        description="It may belong to another workspace or have been removed."
         actions={
           <Button size="sm" variant="outline" asChild>
             <Link href={routes.leads}>All leads</Link>
           </Button>
         }
       />
+    ) : (
+      <ErrorState error={query.error} onRetry={() => void query.refetch()} />
     )
   }
 
+  const intent = query.data
   return (
     <div className="space-y-4">
       <Button variant="ghost" size="sm" asChild className="-ml-2 hidden md:inline-flex xl:hidden">
@@ -38,23 +47,30 @@ export function LeadReview({ leadId }: { leadId: string }) {
           All leads
         </Link>
       </Button>
-      <LeadSourcePost
-        lead={lead}
+      <SourcePost
+        intent={intent}
         openAction={
-          <Button variant="link" size="sm" onClick={() => toast(`Opening ${lead.where}`)}>
-            Open original
-            <ExternalLinkIcon />
-          </Button>
+          intent.postUrl ? (
+            <Button variant="link" size="sm" asChild>
+              <a href={intent.postUrl} target="_blank" rel="noopener noreferrer">
+                Open original
+                <ExternalLinkIcon />
+              </a>
+            </Button>
+          ) : null
         }
       />
-      <IntentBreakdown lead={lead} />
+      <IntentBreakdown intent={intent} draftThreshold={draftThreshold} />
       <ReplyReview
-        key={lead.id}
-        lead={lead}
+        // Reset local edit state when switching between intents.
+        key={intent.id}
+        intent={intent}
         budgetAction={
-          <Button size="sm" onClick={() => setRaiseCapOpen(true)}>
-            Raise cap
-          </Button>
+          role === "operator" ? (
+            <Button size="sm" onClick={() => setRaiseCapOpen(true)}>
+              Raise cap
+            </Button>
+          ) : null
         }
       />
     </div>
@@ -63,8 +79,8 @@ export function LeadReview({ leadId }: { leadId: string }) {
 
 /** On wide screens the inbox shows the first matching lead next to the list. */
 export function FirstLeadReview() {
-  const leads = useLeads()
+  const { workspaceId } = useCurrentWorkspace()
   const filters = useLeadFilters()
-  const first = filterLeads(leads, filters)[0]
-  return first ? <LeadReview leadId={first.id} /> : null
+  const first = useBuyingIntents(workspaceId, filters).data?.pages[0]?.items[0]
+  return first ? <LeadReview intentId={first.id} /> : null
 }

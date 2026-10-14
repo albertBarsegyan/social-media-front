@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useState } from "react"
 
-import { HealthStatus, useCurrentWorkspace, WorkspaceAvatar } from "@/entities/workspace"
+import { bundleLabels, HealthStatus, useCurrentWorkspace, WorkspaceAvatar } from "@/entities/workspace"
 import { routes } from "@/shared/config"
 import { toast } from "@/shared/lib/toast"
 import { cn } from "@/shared/lib/utils"
@@ -18,20 +18,25 @@ export function WorkspaceSwitcherDialog() {
   const { workspace: current, workspaces, setWorkspaceId } = useCurrentWorkspace()
   const [query, setQuery] = useState("")
 
-  const visible = workspaces.filter((ws) => ws.name.toLowerCase().includes(query.trim().toLowerCase()))
+  const visible = workspaces
+    .filter((ws) => ws.name.toLowerCase().includes(query.trim().toLowerCase()))
+    .sort((a, b) => b.pendingApprovals - a.pendingApprovals)
   const close = () => setWorkspaceSwitcherOpen(false)
 
   return (
     <Dialog open={open} onOpenChange={setWorkspaceSwitcherOpen}>
       <DialogContent className="gap-0 p-0 sm:max-w-md">
-        <div className="space-y-3 p-5 pb-3">
+        <div className="space-y-3 p-4 pb-3">
           <DialogHeader>
             <DialogTitle>Switch workspace</DialogTitle>
-            <DialogDescription>{workspaces.length} client workspaces · sorted by what needs you</DialogDescription>
+            <DialogDescription>
+              {workspaces.length} workspace{workspaces.length === 1 ? "" : "s"} · sorted by what needs you
+            </DialogDescription>
           </DialogHeader>
           <Input placeholder="Search clients" value={query} onChange={(event) => setQuery(event.target.value)} />
         </div>
-        <div className="max-h-80 overflow-y-auto px-2">
+        <div className="max-h-80 overflow-y-auto px-4 pb-2">
+          {visible.length === 0 ? <p className="p-3 text-sm text-muted-foreground">No workspace matches.</p> : null}
           {visible.map((ws) => (
             <button
               key={ws.id}
@@ -46,16 +51,16 @@ export function WorkspaceSwitcherDialog() {
                 ws.id === current.id && "bg-muted",
               )}
             >
-              <WorkspaceAvatar initials={ws.initials} />
+              <WorkspaceAvatar name={ws.name} />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-medium">{ws.name}</div>
-                <HealthStatus health={ws.health} label={ws.healthLabel} />
+                <HealthStatus health={ws.health} />
               </div>
               <div className="text-right text-xs text-muted-foreground">
                 <div>
-                  <b className="text-foreground">{ws.pending}</b> to approve
+                  <b className="text-foreground">{ws.pendingApprovals}</b> to approve
                 </div>
-                <div>{ws.bundle}</div>
+                <div>{bundleLabels[ws.bundle]}</div>
               </div>
             </button>
           ))}

@@ -2,8 +2,8 @@
 
 import { usePathname } from "next/navigation"
 
-import { useLeads } from "@/entities/lead"
-import { usePosts } from "@/entities/post"
+import { useApprovalSummary } from "@/entities/approval"
+import { useCurrentWorkspace } from "@/entities/workspace"
 import { useMessages } from "@/shared/lib/i18n"
 
 import { shellMessages } from "../config/messages"
@@ -17,23 +17,24 @@ export function isActive(pathname: string, item: NavItem) {
 export function useShellState() {
   const pathname = usePathname()
   const t = useMessages(shellMessages)
-  const leads = useLeads()
-  const posts = usePosts()
+  const { workspaceId, workspaces, role } = useCurrentWorkspace()
+  const summary = useApprovalSummary(workspaceId).data
 
   const active = (Object.values(nav) as NavItem[]).find((item) => isActive(pathname, item))
   const isLeadDetail = pathname.startsWith(`${nav.leads.match}/`)
 
-  const newLeads = leads.filter((lead) => lead.status === "pending" || lead.status === "nodraft").length
-  const pendingTotal =
-    leads.filter((lead) => lead.status === "pending").length + posts.filter((post) => post.status === "pending").length
-
-  const counts: Partial<Record<NavKey, number>> = { leads: newLeads, approvals: pendingTotal }
+  const counts: Partial<Record<NavKey, number>> = summary
+    ? { leads: summary.reviewIntents, approvals: summary.pendingReplies + summary.pendingPosts }
+    : {}
 
   return {
     pathname,
     t,
     counts,
     isLeadDetail,
+    /** The agency view makes sense once someone runs several workspaces or operates one. */
+    showAgency: workspaces.length > 1 || role === "operator",
+    canSwitch: workspaces.length > 1,
     title: isLeadDetail ? t.lead : active ? t[active.key] : "",
   }
 }

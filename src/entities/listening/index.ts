@@ -1,4 +1,3 @@
-export { estimateWeeklyMatches } from "./lib/estimate"
-export { listeningActions, useListeningConfig } from "./model/store"
-export type { KeywordSet, ListeningSource } from "./model/types"
+export { listeningKeys, useListeningConfig } from "./api/queries"
 export { KeywordChip } from "./ui/keyword-chip"
+export type { KeywordSet, ListeningConfig, ListeningSource } from "@/shared/api"

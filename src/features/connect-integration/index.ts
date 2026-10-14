@@ -1,2 +1,3 @@
+export { useConnectIntegration, useDisconnectIntegration } from "./api/mutations"
 export { ConnectChannelsStep } from "./ui/connect-channels-step"
-export { IntegrationList, useChannelDisconnected, useReconnectChannel } from "./ui/integration-list"
+export { IntegrationList } from "./ui/integration-list"

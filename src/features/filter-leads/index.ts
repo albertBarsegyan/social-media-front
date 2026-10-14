@@ -1,2 +1,2 @@
-export { countByTab, filterLeads, hasActiveFilters, leadFilterActions, useLeadFilters } from "./model/filters"
+export { filtersOnly, hasActiveFilters, leadFilterActions, useLeadFilters, type LeadFilters as LeadFilterState } from "./model/filters"
 export { LeadFilters } from "./ui/lead-filters"

@@ -1,6 +1,7 @@
+import { initials } from "@/shared/lib/format"
 import { cn } from "@/shared/lib/utils"
 
-export function WorkspaceAvatar({ initials, className }: { initials: string; className?: string }) {
+export function WorkspaceAvatar({ name, className }: { name: string; className?: string }) {
   return (
     <span
       aria-hidden
@@ -9,7 +10,7 @@ export function WorkspaceAvatar({ initials, className }: { initials: string; cla
         className,
       )}
     >
-      {initials}
+      {initials(name)}
     </span>
   )
 }

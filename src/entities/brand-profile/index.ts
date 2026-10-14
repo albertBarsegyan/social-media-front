@@ -1,2 +1,2 @@
-export { toneOptions } from "./config/brand"
-export { brandProfileActions, useBrandProfile, type BrandProfile } from "./model/store"
+export { brandProfileKeys, useBrandProfile } from "./api/queries"
+export type { BrandProfile, BrandProfileInput } from "@/shared/api"

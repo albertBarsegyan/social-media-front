@@ -1,10 +1,4 @@
-/** Places we listen for buying intent; replies there are drafted for approval. */
-export type ListeningChannel = "reddit" | "fbgroup" | "tggroup" | "x"
-
-/** Places we publish content to through Buffer. */
-export type PublishChannel = "instagram" | "facebook" | "telegram"
-
-export type ChannelKey = ListeningChannel | PublishChannel
+export type { ChannelKey, ListeningChannel, PublishChannel } from "@/shared/api"
 
 export interface ChannelInfo {
   label: string

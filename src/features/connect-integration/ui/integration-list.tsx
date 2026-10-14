@@ -1,59 +1,79 @@
 "use client"
 
-import { integrationActions, useIntegrations, useIsReconnected } from "@/entities/integration"
-import { useCurrentWorkspace } from "@/entities/workspace"
+import { errorLabels, integrationNames, purposeLabels, useIntegrations, type Integration } from "@/entities/integration"
 import { toast } from "@/shared/lib/toast"
 import { cn } from "@/shared/lib/utils"
 import { Button } from "@/shared/ui/button"
+import { ErrorState } from "@/shared/ui/error-state"
+import { Skeleton } from "@/shared/ui/skeleton"
 
-/** True while the current workspace has a channel that needs reconnecting. */
-export function useChannelDisconnected() {
-  const { workspace } = useCurrentWorkspace()
-  const reconnected = useIsReconnected(workspace.id)
-  return workspace.health === "err" && !reconnected
+import { useConnectIntegration, useDisconnectIntegration } from "../api/mutations"
+
+const statusDot: Record<Integration["status"], string> = {
+  connected: "bg-success",
+  not_connected: "bg-muted-foreground",
+  error: "bg-warning",
 }
 
-export function useReconnectChannel() {
-  const { workspace } = useCurrentWorkspace()
-  return () => {
-    integrationActions.reconnect(workspace.id)
-    toast("Instagram reconnected · 2 posts resumed")
-  }
+function statusText(integration: Integration) {
+  if (integration.status === "error") return errorLabels[integration.errorCode ?? ""] ?? "Needs reconnecting"
+  if (integration.status === "not_connected") return integration.required ? "Not connected · required" : "Not connected"
+  return integration.accountLabel ? `Connected · ${integration.accountLabel}` : "Connected"
 }
 
 /** Connected services in Settings → Channels. */
-export function IntegrationList() {
-  const integrations = useIntegrations()
-  const disconnected = useChannelDisconnected()
-  const reconnect = useReconnectChannel()
+export function IntegrationList({ wid, canManage }: { wid: string; canManage: boolean }) {
+  const query = useIntegrations(wid)
+  const connect = useConnectIntegration(wid)
+  const disconnect = useDisconnectIntegration(wid)
+  const busy = connect.isPending || disconnect.isPending
+
+  if (query.isPending) return <Skeleton className="h-48 rounded-lg" />
+  if (query.isError) return <ErrorState error={query.error} onRetry={() => void query.refetch()} />
 
   return (
     <ul className="divide-y">
-      {integrations.map((integration) => {
-        const broken = integration.id === "buffer" && disconnected
+      {query.data.map((integration) => {
+        const name = integrationNames[integration.provider]
         return (
-          <li key={integration.id} className="flex flex-wrap items-center gap-3 py-3">
-            <span className="grid size-9 place-items-center rounded-lg bg-muted text-sm font-semibold">
-              {integration.name[0]}
-            </span>
+          <li key={integration.provider} className="flex flex-wrap items-center gap-3 py-3">
+            <span className="grid size-9 place-items-center rounded-lg bg-muted text-sm font-semibold">{name[0]}</span>
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline gap-2">
-                <span className="text-sm font-medium">{integration.name}</span>
-                <span className="text-xs text-muted-foreground">{integration.role}</span>
+                <span className="text-sm font-medium">{name}</span>
+                <span className="text-xs text-muted-foreground">{purposeLabels[integration.purpose]}</span>
               </div>
-              <div className="truncate text-xs text-muted-foreground">{integration.detail}</div>
+              {integration.provider === "telegram_bot" && integration.telegramLinkCode && integration.status !== "connected" ? (
+                <div className="truncate text-xs text-muted-foreground">
+                  Owner sends <code className="font-mono">/start {integration.telegramLinkCode}</code> to the bot
+                </div>
+              ) : null}
               <div className="mt-1 inline-flex items-center gap-1.5 text-xs">
-                <span aria-hidden className={cn("size-1.5 rounded-full", broken ? "bg-warning" : "bg-success")} />
-                {broken ? "Instagram token expired" : integration.status}
+                <span aria-hidden className={cn("size-1.5 rounded-full", statusDot[integration.status])} />
+                {statusText(integration)}
               </div>
             </div>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={broken ? reconnect : () => toast(`Opens ${integration.name}`)}
-            >
-              {broken ? "Reconnect" : integration.id === "telegram-bot" ? "Test message" : "Manage"}
-            </Button>
+            {canManage ? (
+              integration.status === "connected" ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={busy}
+                  onClick={() => disconnect.mutate(integration.provider, { onSuccess: () => toast(`${name} disconnected`) })}
+                >
+                  Disconnect
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  variant={integration.status === "error" ? "default" : "outline"}
+                  disabled={busy}
+                  onClick={() => connect.mutate(integration.provider, { onSuccess: () => toast(`${name} connected`) })}
+                >
+                  {integration.status === "error" ? "Reconnect" : "Connect"}
+                </Button>
+              )
+            ) : null}
           </li>
         )
       })}

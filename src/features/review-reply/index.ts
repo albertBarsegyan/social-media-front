@@ -1,2 +1,2 @@
-export { approveReply, restoreReply, skipReply } from "./lib/actions"
+export { useReplyActions } from "./api/mutations"
 export { ReplyReview } from "./ui/reply-review"

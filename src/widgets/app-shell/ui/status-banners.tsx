@@ -2,34 +2,52 @@
 
 import { CircleAlertIcon, TriangleAlertIcon } from "lucide-react"
 
-import { budgetPeriod, formatMoney, useAiBudget } from "@/entities/ai-budget"
+import { useAiBudget } from "@/entities/ai-budget"
+import { integrationNames, useBrokenIntegrations } from "@/entities/integration"
+import { useCurrentWorkspace } from "@/entities/workspace"
 import { setRaiseCapOpen } from "@/features/adjust-ai-cap"
-import { useChannelDisconnected, useReconnectChannel } from "@/features/connect-integration"
+import { useConnectIntegration } from "@/features/connect-integration"
+import { formatDate, formatUsdMicros } from "@/shared/lib/format"
+import { toast } from "@/shared/lib/toast"
 import { Button } from "@/shared/ui/button"
 
 /** Workspace-wide problems that pause publishing or drafting. */
 export function StatusBanners() {
-  const disconnected = useChannelDisconnected()
-  const reconnect = useReconnectChannel()
-  const budget = useAiBudget()
+  const { workspaceId, role } = useCurrentWorkspace()
+  const broken = useBrokenIntegrations(workspaceId)
+  const budget = useAiBudget(workspaceId).data
+  const reconnect = useConnectIntegration(workspaceId)
+  const isOperator = role === "operator"
 
   return (
     <>
-      {disconnected ? (
+      {broken.map((integration) => (
         <div
+          key={integration.provider}
           role="alert"
           className="flex flex-wrap items-center gap-3 border-b border-destructive-border bg-destructive-muted px-4 py-2.5 text-sm text-destructive-muted-foreground md:px-6"
         >
           <CircleAlertIcon className="size-4 shrink-0" />
           <span className="flex-1">
-            <b>Instagram disconnected in Buffer.</b> 2 scheduled posts are paused until you reconnect.
+            <b>{integrationNames[integration.provider]} needs reconnecting.</b> Work that depends on it is paused until then.
           </span>
-          <Button variant="outline" size="sm" onClick={reconnect}>
-            Reconnect
-          </Button>
+          {isOperator ? (
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={reconnect.isPending}
+              onClick={() =>
+                reconnect.mutate(integration.provider, {
+                  onSuccess: () => toast(`${integrationNames[integration.provider]} reconnected`),
+                })
+              }
+            >
+              Reconnect
+            </Button>
+          ) : null}
         </div>
-      ) : null}
-      {budget.reached && budget.hardCap ? (
+      ))}
+      {budget?.paused ? (
         <div
           role="alert"
           className="flex flex-wrap items-center gap-3 border-b border-warning-border bg-warning-muted px-4 py-2.5 text-sm text-warning-muted-foreground md:px-6"
@@ -37,14 +55,16 @@ export function StatusBanners() {
           <TriangleAlertIcon className="size-4 shrink-0" />
           <span className="flex-1">
             <b>
-              AI budget reached — {formatMoney(budget.used)} of {formatMoney(budget.cap)}.
+              AI budget reached — {formatUsdMicros(budget.usedUsdMicros)} of {formatUsdMicros(budget.capUsdMicros)}.
             </b>{" "}
-            Intent scoring and new drafts are paused until {budgetPeriod.resetsOn}. Drafts already written can still be
+            Intent scoring and new drafts are paused until {formatDate(budget.resetsOn)}. Drafts already written can still be
             approved.
           </span>
-          <Button variant="outline" size="sm" onClick={() => setRaiseCapOpen(true)}>
-            Raise cap
-          </Button>
+          {isOperator ? (
+            <Button variant="outline" size="sm" onClick={() => setRaiseCapOpen(true)}>
+              Raise cap
+            </Button>
+          ) : null}
         </div>
       ) : null}
     </>

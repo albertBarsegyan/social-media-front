@@ -1,3 +1,2 @@
-export { campaignHandles } from "./api/mock-campaign"
-export { approvedVariants, campaignActions, useCampaign } from "./model/store"
-export type { Campaign, Variant, VariantStatus } from "./model/types"
+export { campaignKeys, useCampaign, useCampaigns } from "./api/queries"
+export type { Campaign, CampaignSummary, Variant, VariantStatus } from "@/shared/api"

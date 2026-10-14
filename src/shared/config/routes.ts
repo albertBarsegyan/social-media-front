@@ -21,4 +21,10 @@ export const routes = {
   clients: "/clients",
   onboarding: "/onboarding",
   telegramPreview: "/telegram-preview",
+  login: "/login",
+  register: "/register",
+  onboardingFor: (workspaceId: string) => `/onboarding?workspace=${workspaceId}`,
 } as const
+
+/** Routes reachable without a session. */
+export const publicRoutes = ["/login", "/register"] as const
