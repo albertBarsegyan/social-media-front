@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 
-import { ContentStudio } from "@/widgets/content-studio"
+import { ContentStudio } from "./content-studio"
 
 export const metadata: Metadata = { title: "Content studio" }
 

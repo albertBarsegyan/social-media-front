@@ -3,7 +3,7 @@ import { Suspense } from "react"
 
 import { getLeadIds } from "@/entities/lead/index.server"
 import { Skeleton } from "@/shared/ui/skeleton"
-import { LeadReview } from "@/widgets/lead-review"
+import { LeadReview } from "./lead-review"
 
 export const metadata: Metadata = { title: "Lead" }
 

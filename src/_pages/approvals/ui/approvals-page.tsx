@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 
-import { ApprovalsQueue } from "@/widgets/approvals-queue"
+import { ApprovalsQueue } from "./approvals-queue"
 
 export const metadata: Metadata = { title: "Approvals" }
 

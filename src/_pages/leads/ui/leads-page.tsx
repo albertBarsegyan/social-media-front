@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
 
-import { FirstLeadReview } from "@/widgets/lead-review"
+import { FirstLeadReview } from "./lead-review"
 
 export const metadata: Metadata = { title: "Leads" }
 

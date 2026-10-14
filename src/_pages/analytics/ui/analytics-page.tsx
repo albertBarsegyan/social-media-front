@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
 import { getChannelStats, getTopLinks, getWeeklyReport } from "@/entities/report/index.server"
-import { AnalyticsReport } from "@/widgets/analytics-report"
+import { AnalyticsReport } from "./analytics-report"
 
 export const metadata: Metadata = { title: "Analytics" }
 

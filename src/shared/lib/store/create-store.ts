@@ -1,5 +1,3 @@
-import { useSyncExternalStore } from "react"
-
 type Updater<S> = Partial<S> | ((state: S) => Partial<S>)
 
 export interface Store<S> {
@@ -33,10 +31,4 @@ export function createStore<S extends object>(initial: S): Store<S> {
       listeners.forEach((listener) => listener())
     },
   }
-}
-
-/** Selectors run on the stable snapshot, so they may freely derive new arrays. */
-export function useStore<S extends object, T>(store: Store<S>, selector: (state: S) => T): T {
-  const state = useSyncExternalStore(store.subscribe, store.getState, store.getState)
-  return selector(state)
 }
